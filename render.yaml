@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: spotmieayam
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /spotmieayam/*
+        destination: /spotmieayam/index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -2,11 +2,10 @@
 import { ref, computed } from 'vue'
 import MieMap from '@/components/MieMap.vue'
 import SpotList from '@/components/SpotList.vue'
-import Badge from '@/components/ui/Badge.vue'
 import { MIE_AYAM_SPOTS, CINERE_AREAS } from '@/data/cinereData'
 import { calculateDistanceKm } from '@/utils/distance'
 import type { MieAyamSpot } from '@/types/mieAyam'
-import { ListOrdered, Map as MapIcon, Sparkles } from 'lucide-vue-next'
+import { ListOrdered, Map as MapIcon } from 'lucide-vue-next'
 
 // Default location (Cinere)
 const defaultArea = CINERE_AREAS[0] ?? {
@@ -72,14 +71,7 @@ function handleSelectSpot(spotId: string) {
 <template>
   <div class="space-y-6">
     <!-- Clean Minimalist Header -->
-    <header class="space-y-2">
-      <div class="flex items-center gap-2">
-        <Badge variant="secondary" class="gap-1 font-medium text-xs">
-          <Sparkles class="h-3 w-3 text-primary" />
-          <span>Fokus Kecamatan Cinere, Depok</span>
-        </Badge>
-      </div>
-
+    <header class="space-y-1">
       <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
         Cari Spot Mie Ayam Terdekat
       </h1>

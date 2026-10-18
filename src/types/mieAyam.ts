@@ -4,6 +4,9 @@ export interface MieAyamSpot {
   latitude: number
   longitude: number
   distanceKm?: number
+  rating?: number
+  price?: number
+  priceRange?: string
 }
 
 export interface CinereArea {

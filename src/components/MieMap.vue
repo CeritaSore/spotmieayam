@@ -4,6 +4,8 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { MieAyamSpot } from '@/types/mieAyam'
 import { formatDistance } from '@/utils/distance'
+import Button from '@/components/ui/Button.vue'
+import { Maximize2, MousePointerClick } from 'lucide-vue-next'
 
 const props = defineProps<{
   referenceLocation: {
@@ -30,33 +32,11 @@ function createUserIcon() {
   return L.divIcon({
     className: 'custom-user-marker',
     html: `
-      <div class="relative flex items-center justify-center w-8 h-8 -translate-x-1/2 -translate-y-1/2">
-        <span class="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping"></span>
-        <span class="relative inline-flex items-center justify-center rounded-full h-7 w-7 bg-blue-600 text-white shadow-lg border-2 border-white text-xs font-bold">
+      <div class="relative flex items-center justify-center w-7 h-7 -translate-x-1/2 -translate-y-1/2">
+        <span class="absolute inline-flex h-full w-full rounded-full bg-blue-500/40 animate-ping"></span>
+        <span class="relative inline-flex items-center justify-center rounded-full h-6 w-6 bg-blue-600 text-white shadow-md border-2 border-white text-[11px] font-bold">
           📍
         </span>
-      </div>
-    `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-  })
-}
-
-// Custom DivIcon for Mie Ayam spot
-function createSpotIcon(isNearest: boolean, isSelected: boolean) {
-  const bgClass = isSelected
-    ? 'bg-red-600 ring-4 ring-red-300 scale-125 z-50'
-    : isNearest
-      ? 'bg-amber-500 ring-2 ring-amber-300'
-      : 'bg-orange-500 hover:scale-110'
-
-  return L.divIcon({
-    className: 'custom-spot-marker',
-    html: `
-      <div class="transition-transform duration-200 flex items-center justify-center -translate-x-1/2 -translate-y-1/2">
-        <div class="flex items-center justify-center rounded-full h-7 w-7 ${bgClass} text-white shadow-md border-2 border-white text-xs">
-          🍜
-        </div>
       </div>
     `,
     iconSize: [28, 28],
@@ -64,23 +44,42 @@ function createSpotIcon(isNearest: boolean, isSelected: boolean) {
   })
 }
 
+// Custom DivIcon for Mie Ayam spot
+function createSpotIcon(isNearest: boolean, isSelected: boolean) {
+  const bgClass = isSelected
+    ? 'bg-primary ring-4 ring-primary/30 scale-125 z-50'
+    : isNearest
+      ? 'bg-primary ring-2 ring-primary/40'
+      : 'bg-zinc-800 dark:bg-zinc-200 text-zinc-100 dark:text-zinc-900 hover:scale-110'
+
+  return L.divIcon({
+    className: 'custom-spot-marker',
+    html: `
+      <div class="transition-transform duration-200 flex items-center justify-center -translate-x-1/2 -translate-y-1/2">
+        <div class="flex items-center justify-center rounded-full h-6 w-6 ${bgClass} text-white shadow-xs border-2 border-white dark:border-zinc-900 text-[10px]">
+          🍜
+        </div>
+      </div>
+    `,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  })
+}
+
 function initMap() {
   if (!mapContainer.value) return
 
-  // Center on Cinere
   map = L.map(mapContainer.value, {
     zoomControl: true,
     scrollWheelZoom: true,
   }).setView([props.referenceLocation.latitude, props.referenceLocation.longitude], 14)
 
-  // OpenStreetMap Tile Layer
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 19,
   }).addTo(map)
 
-  // Klik di peta untuk memindahkan titik acuan di Cinere
   map.on('click', (e: L.LeafletMouseEvent) => {
     emit('update:referenceCoordinate', {
       latitude: Number(e.latlng.lat.toFixed(5)),
@@ -88,7 +87,6 @@ function initMap() {
     })
   })
 
-  // User Marker
   userMarker = L.marker(
     [props.referenceLocation.latitude, props.referenceLocation.longitude],
     {
@@ -98,10 +96,10 @@ function initMap() {
   ).addTo(map)
 
   userMarker.bindPopup(`
-    <div class="text-xs font-sans p-1">
-      <strong class="text-blue-600 block mb-0.5">Lokasi Pilihan</strong>
-      <span>${props.referenceLocation.name}</span>
-      <div class="text-slate-400 mt-1 text-[10px]">(${props.referenceLocation.latitude.toFixed(4)}, ${props.referenceLocation.longitude.toFixed(4)})</div>
+    <div class="text-xs p-1">
+      <div class="font-semibold text-blue-600 dark:text-blue-400 mb-0.5">Lokasi Acuan</div>
+      <div class="font-medium text-foreground">${props.referenceLocation.name}</div>
+      <div class="text-muted-foreground font-mono mt-1 text-[10px]">(${props.referenceLocation.latitude.toFixed(4)}, ${props.referenceLocation.longitude.toFixed(4)})</div>
     </div>
   `)
 
@@ -126,21 +124,19 @@ function renderSpotMarkers() {
     const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${spot.latitude},${spot.longitude}`
 
     marker.bindPopup(`
-      <div class="p-1 font-sans text-xs min-w-[160px]">
-        <div class="flex items-center justify-between gap-1 mb-1">
-          <span class="font-bold text-slate-900">${spot.name}</span>
-        </div>
-        ${distanceText ? `<div class="text-amber-600 font-semibold mb-1">📍 Jarak: ${distanceText}</div>` : ''}
-        <div class="text-[10px] text-slate-500 mb-2 font-mono">
-          Lat: ${spot.latitude.toFixed(4)}, Lng: ${spot.longitude.toFixed(4)}
+      <div class="p-1.5 font-sans text-xs min-w-[170px]">
+        <div class="font-semibold text-foreground mb-1 leading-snug">${spot.name}</div>
+        ${distanceText ? `<div class="text-primary font-medium text-[11px] mb-1.5 flex items-center gap-1"><span>📍 Jarak:</span> <span class="font-bold">${distanceText}</span></div>` : ''}
+        <div class="text-[10px] text-muted-foreground mb-2 font-mono">
+          ${spot.latitude.toFixed(4)}, ${spot.longitude.toFixed(4)}
         </div>
         <a 
           href="${gmapsUrl}" 
           target="_blank" 
           rel="noopener noreferrer" 
-          class="inline-block text-center w-full px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-[11px] font-medium no-underline"
+          class="inline-flex items-center justify-center w-full px-2.5 py-1.5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-[11px] font-medium no-underline shadow-xs transition-colors"
         >
-          Buka di Google Maps ↗
+          Buka Google Maps ↗
         </a>
       </div>
     `)
@@ -153,17 +149,16 @@ function renderSpotMarkers() {
   })
 }
 
-// Watch changes to reference location
 watch(
   () => props.referenceLocation,
   (newLoc) => {
     if (userMarker) {
       userMarker.setLatLng([newLoc.latitude, newLoc.longitude])
       userMarker.setPopupContent(`
-        <div class="text-xs font-sans p-1">
-          <strong class="text-blue-600 block mb-0.5">Lokasi Pilihan</strong>
-          <span>${newLoc.name}</span>
-          <div class="text-slate-400 mt-1 text-[10px]">(${newLoc.latitude.toFixed(4)}, ${newLoc.longitude.toFixed(4)})</div>
+        <div class="text-xs p-1">
+          <div class="font-semibold text-blue-600 dark:text-blue-400 mb-0.5">Lokasi Acuan</div>
+          <div class="font-medium text-foreground">${newLoc.name}</div>
+          <div class="text-muted-foreground font-mono mt-1 text-[10px]">(${newLoc.latitude.toFixed(4)}, ${newLoc.longitude.toFixed(4)})</div>
         </div>
       `)
     }
@@ -171,7 +166,6 @@ watch(
   { deep: true }
 )
 
-// Watch spots list or selected spot
 watch(
   () => [props.spots, props.selectedSpotId],
   () => {
@@ -180,7 +174,6 @@ watch(
   { deep: true }
 )
 
-// Focus to selected spot if passed
 watch(
   () => props.selectedSpotId,
   (id) => {
@@ -221,32 +214,33 @@ defineExpose({
 </script>
 
 <template>
-  <div class="relative w-full h-[380px] md:h-[540px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
+  <div class="relative w-full h-[360px] md:h-[500px] rounded-xl overflow-hidden border border-border bg-card shadow-xs">
     <div ref="mapContainer" class="w-full h-full z-0"></div>
 
     <!-- Floating Map Control Buttons -->
-    <div class="absolute top-3 right-3 z-[400] flex flex-col gap-2">
-      <button
+    <div class="absolute top-3 right-3 z-[400]">
+      <Button
         type="button"
+        variant="secondary"
+        size="sm"
+        class="h-8 shadow-sm text-xs gap-1.5 bg-background/90 backdrop-blur border border-border"
         @click="fitAll"
-        class="px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-lg shadow-md border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center gap-1.5 transition-all"
-        title="Lihat semua spot dan lokasi pilihan"
+        title="Lihat semua spot"
       >
-        <span>🎯</span>
+        <Maximize2 class="h-3.5 w-3.5" />
         <span>Lihat Semua</span>
-      </button>
+      </Button>
     </div>
 
     <!-- Map Info Helper Badge -->
-    <div class="absolute bottom-3 left-3 z-[400] bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 shadow-sm flex items-center gap-2">
-      <span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span>
-      <span>Klik peta untuk memilih titik lokasi</span>
+    <div class="absolute bottom-3 left-3 z-[400] bg-background/90 backdrop-blur-md px-2.5 py-1 rounded-md border border-border text-[11px] text-muted-foreground shadow-xs flex items-center gap-1.5">
+      <MousePointerClick class="h-3 w-3 text-primary" />
+      <span>Klik peta untuk pindahkan titik acuan</span>
     </div>
   </div>
 </template>
 
 <style>
-/* Leaflet container fixes */
 .leaflet-container {
   font-family: inherit;
 }
@@ -254,5 +248,15 @@ defineExpose({
 .custom-spot-marker {
   background: transparent !important;
   border: none !important;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+.leaflet-popup-tip {
+  background: hsl(var(--card));
 }
 </style>

@@ -1,27 +1,31 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import { Soup, MapPin } from 'lucide-vue-next'
+import Badge from '@/components/ui/Badge.vue'
 </script>
 
 <template>
-  <header class="sticky top-0 z-30 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <RouterLink to="/" class="flex items-center gap-2.5 no-underline group">
-        <span class="text-2xl group-hover:scale-110 transition-transform">🍜</span>
-        <div>
-          <span class="font-extrabold text-base sm:text-lg text-slate-900 dark:text-slate-100 tracking-tight block leading-tight">
+  <header class="sticky top-0 z-40 w-full border-b border-border/70 bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+      <RouterLink to="/" class="flex items-center gap-2.5 text-foreground hover:opacity-90 transition-opacity">
+        <div class="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+          <Soup class="h-4 w-4" />
+        </div>
+        <div class="flex items-baseline gap-1.5">
+          <span class="font-bold text-sm sm:text-base tracking-tight text-foreground">
             Spot Mie Ayam
           </span>
-          <span class="text-[10px] font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-widest block leading-none">
-            Edisi Cinere
+          <span class="text-xs text-muted-foreground font-medium">
+            Cinere
           </span>
         </div>
       </RouterLink>
 
       <div class="flex items-center gap-2">
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300">
-          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-          <span class="hidden sm:inline">Kecamatan</span> Cinere, Depok
-        </div>
+        <Badge variant="outline" class="gap-1 font-normal text-xs py-1">
+          <MapPin class="h-3 w-3 text-primary" />
+          <span>Cinere, Depok</span>
+        </Badge>
       </div>
     </div>
   </header>

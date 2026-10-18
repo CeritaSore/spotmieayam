@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import AreaSelector from '@/components/AreaSelector.vue'
 import MieMap from '@/components/MieMap.vue'
 import SpotList from '@/components/SpotList.vue'
+import Badge from '@/components/ui/Badge.vue'
 import { MIE_AYAM_SPOTS, CINERE_AREAS } from '@/data/cinereData'
 import { calculateDistanceKm } from '@/utils/distance'
 import type { MieAyamSpot } from '@/types/mieAyam'
+import { ListOrdered, Map as MapIcon, Sparkles } from 'lucide-vue-next'
 
 // Default location (Cinere)
 const defaultArea = CINERE_AREAS[0] ?? {
@@ -40,13 +41,12 @@ const sortedSpots = computed<MieAyamSpot[]>(() => {
     }
   })
 
-  // Sort ascending by distance
+  // Sort ascending by distance by default
   return list.sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0))
 })
 
 // Handle map click to update reference location
 function handleUpdateCoordinate(coord: { latitude: number; longitude: number }) {
-  // Check if it matches any preset
   const matched = CINERE_AREAS.find(
     (a) =>
       Math.abs(a.latitude - coord.latitude) < 0.001 &&
@@ -62,7 +62,6 @@ function handleUpdateCoordinate(coord: { latitude: number; longitude: number }) 
 
 function handleSelectSpot(spotId: string) {
   selectedSpotId.value = spotId
-  // In mobile, switch to map if clicked from list
   const spot = sortedSpots.value.find((s) => s.id === spotId)
   if (spot && mapRef.value) {
     mapRef.value.focusSpot(spot.latitude, spot.longitude)
@@ -72,60 +71,56 @@ function handleSelectSpot(spotId: string) {
 
 <template>
   <div class="space-y-6">
-    <!-- Hero Banner -->
-    <header class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 p-6 md:p-8 text-white shadow-lg">
-      <div class="relative z-10 max-w-3xl space-y-2">
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold uppercase tracking-wider">
-          <span>🍜 Khusus Wilayah Cinere & Sekitarnya</span>
-        </div>
-        <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight">
-          Cari Spot Mie Ayam Terdekat
-        </h1>
-        <p class="text-amber-100 text-sm sm:text-base leading-relaxed">
-          Pilih area Anda di wilayah Cinere untuk mengetahui warung mie ayam yang paling dekat dari lokasi Anda secara instan dan akurat.
-        </p>
+    <!-- Clean Minimalist Header -->
+    <header class="space-y-2">
+      <div class="flex items-center gap-2">
+        <Badge variant="secondary" class="gap-1 font-medium text-xs">
+          <Sparkles class="h-3 w-3 text-primary" />
+          <span>Fokus Kecamatan Cinere, Depok</span>
+        </Badge>
       </div>
 
-      <!-- Decorative subtle glow -->
-      <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+        Cari Spot Mie Ayam Terdekat
+      </h1>
+      <p class="text-sm text-muted-foreground max-w-2xl leading-relaxed">
+        Temukan dan bandingkan spot mie ayam terbaik di kawasan Cinere berdasarkan jarak dan rating.
+      </p>
     </header>
 
-    <!-- Area Selector (Input Daerah Cinere) -->
-    <AreaSelector v-model="referenceLocation" />
-
-    <!-- Mobile View Tabs Switcher (Visible only on small screens) -->
-    <div class="flex lg:hidden rounded-xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700">
+    <!-- Mobile View Tabs Switcher (shadcn style tabs) -->
+    <div class="flex lg:hidden rounded-lg bg-muted p-1 border border-border">
       <button
         type="button"
         @click="mobileTab = 'list'"
-        class="flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5"
+        class="flex-1 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
         :class="
           mobileTab === 'list'
-            ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-xs'
-            : 'text-slate-600 dark:text-slate-400'
+            ? 'bg-background text-foreground shadow-xs font-semibold'
+            : 'text-muted-foreground hover:text-foreground'
         "
       >
-        <span>📋</span>
-        <span>Daftar Terdekat ({{ sortedSpots.length }})</span>
+        <ListOrdered class="h-3.5 w-3.5" />
+        <span>Daftar ({{ sortedSpots.length }})</span>
       </button>
       <button
         type="button"
         @click="mobileTab = 'map'"
-        class="flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5"
+        class="flex-1 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
         :class="
           mobileTab === 'map'
-            ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-xs'
-            : 'text-slate-600 dark:text-slate-400'
+            ? 'bg-background text-foreground shadow-xs font-semibold'
+            : 'text-muted-foreground hover:text-foreground'
         "
       >
-        <span>🗺️</span>
+        <MapIcon class="h-3.5 w-3.5" />
         <span>Peta Interaktif</span>
       </button>
     </div>
 
     <!-- Main Content Area: Responsive Split Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      <!-- Left Column: Spots List (Sorted Nearest) -->
+      <!-- Left Column: Spots List (With filter:dropdown & cards) -->
       <div
         class="lg:col-span-7 space-y-4"
         :class="{ 'hidden lg:block': mobileTab === 'map' }"
@@ -139,15 +134,15 @@ function handleSelectSpot(spotId: string) {
 
       <!-- Right Column: Interactive Map (Sticky on Desktop) -->
       <div
-        class="lg:col-span-5 lg:sticky lg:top-6 space-y-3"
+        class="lg:col-span-5 lg:sticky lg:top-20 space-y-2"
         :class="{ 'hidden lg:block': mobileTab === 'list' }"
       >
-        <div class="flex items-center justify-between">
-          <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-            <span>🗺️ Peta Spot Cinere</span>
+        <div class="flex items-center justify-between px-0.5">
+          <h3 class="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+            Peta Lokasi
           </h3>
-          <span class="text-xs text-slate-500 font-mono">
-            {{ sortedSpots.length }} pin ditampilkan
+          <span class="text-xs text-muted-foreground font-mono">
+            {{ sortedSpots.length }} pin
           </span>
         </div>
 
